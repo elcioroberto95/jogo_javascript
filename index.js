@@ -40,6 +40,7 @@ class ProjectTile {
         pincel.fill();
     };
     update(){
+        this.draw();
         this.x = this.x + this.velocity.x;
         this.y = this.y + this.velocity.y;
     };
@@ -52,25 +53,36 @@ const heightPlayer = canvas.height/2
 const player = new Player(widthPlayer,heightPlayer,30,'blue');
 player.draw();
 
-const projectTile = new ProjectTile(
-    canvas.width/2,
-    canvas.height/2,
-    5,
-    'red',
-    {
-    x: 1,
-    y: 1
-   }
-   );
+
+
+
+   const projectTiles = [];
   
 
 function animate(){
     requestAnimationFrame(animate);
-    projectTile.draw();
-    projectTile.update();
+    pincel.clearRect(0,0,canvas.width,canvas.height);
+    player.draw();
+    projectTiles.forEach(projectTile => {
+        projectTile.update();
+    })
+  
 }
 
-window.addEventListener('click', ()=> {
+window.addEventListener('click', (event)=> {
+    const angle = Math.atan2(
+            event.clientY  - canvas.height/2,
+            event.clientX - canvas.width/2
+        )
+        const  velocity = {
+            x:Math.cos(angle),
+            y:Math.sin(angle),
+        }
+    projectTiles.push(
+      new ProjectTile(canvas.width/2,canvas.height/2,5,'red',{
+          x:velocity.x,
+          y:velocity.y
+      }));
   
 })
 
