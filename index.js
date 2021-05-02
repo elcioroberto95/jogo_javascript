@@ -1,8 +1,8 @@
 let canvas = document.querySelector('canvas');
 let pincel = canvas.getContext('2d');
-let somAtirando = 
+let somAtirando =
 
-canvas.width = innerWidth;
+    canvas.width = innerWidth;
 canvas.height = innerHeight;
 
 class Player {
@@ -47,8 +47,8 @@ class ProjectTile {
         this.x = this.x + this.velocity.x;
         this.y = this.y + this.velocity.y;
     };
-    atirarSom(){
-         this.audio.play();
+    atirarSom() {
+        this.audio.play();
     }
 
 };
@@ -87,7 +87,25 @@ function spawnEnemies() {
             x = Math.random() * canvas.width;
             y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
         }
-        const color = 'green';
+
+        const colors =
+            [
+                '#C0C0C0',
+                '#808080',
+                '#00FFFF',
+                '#008080',
+                '#FF00FF',
+                '#800080',
+                '#0000FF',
+                '#000080',
+                '#00FF00',
+                '#008000',
+                '#FFFF00',
+                '#808000',
+                '#FF0000',
+                '#800000']
+
+        const color = colors[Math.round(Math.random() * 11)];
         const angle = Math.atan2(canvas.height / 2 - y, canvas.width / 2 - x);
         const velocity = {
             x: Math.cos(angle), y: Math.sin(angle)
@@ -103,7 +121,7 @@ function spawnEnemies() {
 
 const widthPlayer = canvas.width / 2;
 const heightPlayer = canvas.height / 2
-const player = new Player(widthPlayer, heightPlayer, 30, 'blue');
+const player = new Player(widthPlayer, heightPlayer, 15, 'white');
 
 player.draw();
 
@@ -111,20 +129,30 @@ player.draw();
 
 var animationId;
 function animate() {
-    
+
     animationId = requestAnimationFrame(animate);
-    pincel.clearRect(0, 0, canvas.width, canvas.height);
-    player.draw(); 
-   
-    projectTiles.forEach(projectTile => {
+    pincel.fillStyle = 'rgba(0,0,0,0.3)';
+    pincel.fillRect(0, 0, canvas.width, canvas.height);
+    player.draw();
+
+    projectTiles.forEach((projectTile, index) => {
         projectTile.update();
+        if (projectTile.x - projectTile.radius < 0 || projectTile.x - projectTile.radius > canvas.width ||
+            projectTile.y + projectTile.radius < 0 || projectTile.y - projectTile.radius > canvas.height) {
+            setTimeout(() => {
+                projectTile.splice(index, 1);
+            }, 0);
+        }
+
     });
+
+
 
     enemies.forEach((enemy, index) => {
         enemy.update();
         const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
-       
-        if (dist - enemy.radius - player.radius < 1){
+
+        if (dist - enemy.radius - player.radius < 1) {
             cancelAnimationFrame(animationId);
             alert('oi');
         }
@@ -134,12 +162,12 @@ function animate() {
             const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
 
             if (dist - enemy.radius - projectile.radius < 1) {
-              
-                setTimeout(()=> {
+
+                setTimeout(() => {
                     enemies.splice(index, 1);
                     projectTiles.splice(projectileIndex, 1);
-    
-                },10)
+
+                }, 10)
 
             }
 
@@ -157,16 +185,16 @@ window.addEventListener('click', (event) => {
         x: Math.cos(angle) * 5,
         y: Math.sin(angle) * 5,
     }
-    const projectTile2 =  new ProjectTile(canvas.width / 2, canvas.height / 2, 5, 'red', {
+    const projectTile2 = new ProjectTile(canvas.width / 2, canvas.height / 2, 5, 'red', {
         x: velocity.x,
         y: velocity.y
     })
     projectTiles.push(
         projectTile2
-       );
+    );
     projectTile2.atirarSom();
-    
-    
+
+
 
 });
 
