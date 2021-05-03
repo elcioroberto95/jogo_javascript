@@ -1,9 +1,53 @@
 let canvas = document.querySelector('canvas');
 let pincel = canvas.getContext('2d');
-let somAtirando =
+let score = document.querySelector('#idScore');
+let points = 0;
+let lastPontuacao = localStorage.getItem('pointsGame');
+let startGame = document.querySelector('#startGame');
+let modal = document.querySelector('#modal');
+let pointsDom = document.querySelector('#pointsDom');
+let lastPoints = document.querySelector('#lastPontuantion');
+let lastH1 = document.querySelector('#lastH1');
 
-    canvas.width = innerWidth;
+canvas.width = innerWidth;
 canvas.height = innerHeight;
+let player;
+let projectTiles;
+let enemies;
+function lastPointsStorage(){
+    lastPoints.textContent = lastPontuacao;
+    console.log('oi');
+}
+lastPointsStorage();
+function init(){
+
+    player = new Player(widthPlayer, heightPlayer, 15, 'white');
+    projectTiles = [];
+    enemies = [];
+    player.draw();
+    
+    window.addEventListener('click', (event) => {
+        const angle = Math.atan2(
+            event.clientY - canvas.height / 2,
+            event.clientX - canvas.width / 2
+        )
+        const velocity = {
+            x: Math.cos(angle) * 5,
+            y: Math.sin(angle) * 5,
+        }
+        const projectTile2 = new ProjectTile(canvas.width / 2, canvas.height / 2, 5, 'red', {
+            x: velocity.x,
+            y: velocity.y
+        })
+        projectTiles.push(
+            projectTile2
+        );
+        projectTile2.atirarSom();
+    
+    });
+   
+}
+
 
 class Player {
     constructor(x, y, radius, color) {
@@ -26,7 +70,6 @@ class Player {
 };
 
 
-const projectTiles = [];
 class ProjectTile {
     constructor(x, y, radius, color, velocity) {
         this.x = x;
@@ -73,7 +116,6 @@ class Enemy {
         this.y = this.y + this.velocity.y;
     };
 };
-const enemies = [];
 function spawnEnemies() {
     setInterval(() => {
         const radius = Math.random() * 30;
@@ -103,7 +145,8 @@ function spawnEnemies() {
                 '#FFFF00',
                 '#808000',
                 '#FF0000',
-                '#800000']
+                '#800000'
+            ]
 
         const color = colors[Math.round(Math.random() * 11)];
         const angle = Math.atan2(canvas.height / 2 - y, canvas.width / 2 - x);
@@ -121,9 +164,8 @@ function spawnEnemies() {
 
 const widthPlayer = canvas.width / 2;
 const heightPlayer = canvas.height / 2
-const player = new Player(widthPlayer, heightPlayer, 15, 'white');
 
-player.draw();
+//player.draw();
 
 
 
@@ -140,7 +182,7 @@ function animate() {
         if (projectTile.x - projectTile.radius < 0 || projectTile.x - projectTile.radius > canvas.width ||
             projectTile.y + projectTile.radius < 0 || projectTile.y - projectTile.radius > canvas.height) {
             setTimeout(() => {
-                projectTile.splice(index, 1);
+                projectTiles.splice(index, 1);
             }, 0);
         }
 
@@ -150,24 +192,48 @@ function animate() {
 
     enemies.forEach((enemy, index) => {
         enemy.update();
+
+        //distancia entre o inimigo e o jogador
         const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
 
+        //INIMIGO TOCA O JOGADOR----> END GAME
         if (dist - enemy.radius - player.radius < 1) {
             cancelAnimationFrame(animationId);
-            alert('oi');
+            modal.style.display = 'flex';
+            pointsDom.style.display = "block";
+            lastPoints.style.display = "none";
+            lastH1.style.display = "none";
+            pointsDom.textContent = points;
+            startGame.textContent = 'Jogar novamente';
+            score.textContent = 0;
         }
 
+        //A CADA PROJETIL DISPARADO
         projectTiles.forEach((projectile, projectileIndex) => {
-
+            
+            //DISTANCIA ENTRE O INIMIGO E O PROJETIL
             const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
 
+            //SE A DISTANCIA DO INIMIGO E O PROJETIL FOR MENOR QUE 1
             if (dist - enemy.radius - projectile.radius < 1) {
-
+                score.textContent = ++points;
+                localStorage.setItem('pointsGame',points);
+               if(enemy.radius - 10 > 10){
+                enemy.radius -= 10;
                 setTimeout(() => {
+                    //eliminaa projetil
+                    projectTiles.splice(projectileIndex,1);
+                },0);
+               }
+               else {
+                setTimeout(() => {
+                    //ELIMINA INIMIGO
                     enemies.splice(index, 1);
+                    //ELIMINA PROJETIL
                     projectTiles.splice(projectileIndex, 1);
 
                 }, 10)
+               }
 
             }
 
@@ -176,27 +242,15 @@ function animate() {
 
 };
 
-window.addEventListener('click', (event) => {
-    const angle = Math.atan2(
-        event.clientY - canvas.height / 2,
-        event.clientX - canvas.width / 2
-    )
-    const velocity = {
-        x: Math.cos(angle) * 5,
-        y: Math.sin(angle) * 5,
-    }
-    const projectTile2 = new ProjectTile(canvas.width / 2, canvas.height / 2, 5, 'red', {
-        x: velocity.x,
-        y: velocity.y
-    })
-    projectTiles.push(
-        projectTile2
-    );
-    projectTile2.atirarSom();
 
-
-
+startGame.addEventListener('click',() => {
+    init();
+    points = 0;
+    pointsDom.textContent = 0;
+    setTimeout(() => {
+        animate();
+        spawnEnemies();
+        modal.style.display = 'none';
+    },100);
 });
 
-animate();
-spawnEnemies();
